@@ -10,20 +10,29 @@ security:
             entity:
                 class: App\Entity\User
                 property: email
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_ADMIN_COMMENT, ROLE_ADMIN_ARTICLE, ROLE_ALLOWED_TO_SWITCH]
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             anonymous: true
+
             guard:
                 authenticators:
                     - App\Security\LoginFormAuthenticator
+                    - App\Security\ApiTokenAuthenticator
+                entry_point: App\Security\LoginFormAuthenticator
+
             logout:
                 path: app_logout
+
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 2592000
+
+            switch_user: true
             # activate different ways to authenticate
 
             # http_basic: true
@@ -35,5 +44,8 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-         # - { path: ^/admin, roles: ROLE_ADMIN }
+        # - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }  - mojem da doidem tuk, ako prosto sme posetiteli na saita (bez da sme lognati)
+        # - { path: ^/password-change, roles: IS_AUTHENTICATED_FULLY } - mojem da doidem tuk, samo ako NE sme lognati s 'remember_me'. Ako sme taka, shte ti preprati kym login stranicata
+        # - { path: ^/, roles: IS_AUTHENTICATED_REMEMBERED } - dostyp do vsqka stranica ako sme lognati s remembered me
+        # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
