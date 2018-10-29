@@ -10,12 +10,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @IsGranted("ROLE_ADMIN_ARTICLE")
+ *
  */
 class ArticleAdminController extends AbstractController
 {
     /**
      * @Route("/admin/article/new", name="admin_article_new")
+     * @IsGranted("ROLE_ADMIN_ARTICLE")
      */
     public function new(EntityManagerInterface $em)
     {
@@ -26,5 +27,17 @@ class ArticleAdminController extends AbstractController
             $article->getId(),
             $article->getSlug()
         ));
+    }
+
+    /**
+     * @Route("/admin/article/{id}/edit")
+     * @IsGranted("MANAGE", subject="article")
+     */
+    public function edit(Article $article)
+    {
+        //ako tova koeto podavame na subject ne e tova koeto e podadeno kato argument
+        //$this->denyAccessUnlessGranted('MANAGE', $article);
+
+        dd($article);
     }
 }

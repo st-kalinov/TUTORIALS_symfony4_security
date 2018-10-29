@@ -3,9 +3,11 @@
 namespace App\Security;
 
 use App\Repository\ApiTokenRepository;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
@@ -27,7 +29,7 @@ class ApiTokenAuthenticator extends AbstractGuardAuthenticator
     public function supports(Request $request)
     {
         return $request->headers->has('Authorization')
-            && 0 === strpos($request->headers->get('Authorization'), 'Bearer ') && $request->attributes->get('_route') === 'api_account';
+            && 0 === strpos($request->headers->get('Authorization'), 'Bearer ');
     }
 
     public function getCredentials(Request $request)
@@ -43,20 +45,25 @@ class ApiTokenAuthenticator extends AbstractGuardAuthenticator
 
         if(!$token)
         {
-            return;
+            throw new CustomUserMessageAuthenticationException('Invalid API Token');
         }
-
+        if($token->isExpired())
+        {
+            throw new CustomUserMessageAuthenticationException('Token is expired!');
+        }
         return $token->getUser();
     }
 
     public function checkCredentials($credentials, UserInterface $user)
     {
-        dd('checking credentials');
+        return true;
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        // todo
+        return new JsonResponse([
+           'message' => $exception->getMessageKey()
+        ], 401);
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
@@ -66,11 +73,14 @@ class ApiTokenAuthenticator extends AbstractGuardAuthenticator
 
     public function start(Request $request, AuthenticationException $authException = null)
     {
-        // todo
+        //nqma da e izvikano nikoga, zashtoto sme izbrali EntryPoint da e 'LoginFormAuthenticator, a tam clasa koito se nasledqva nqma tozi 'start' metod.
     }
 
     public function supportsRememberMe()
     {
-        // todo
+        // ako returnem true ozn che remember me systemata e aktivirana i shte proveri checkboxa za remember me dali e checknata, no tova nqma nikakyv smisal s
+        // API token avtentifikaciq, za tova vryshtame false
+
+        return false;
     }
 }
